@@ -24,8 +24,8 @@ spec:
     spec:
       containers:
         - name: app
-          image: alexandreroman/spring-petclinic-k8s-api-gateway:latest
-          imagePullPolicy: Always
+          image: spring-petclinic-k8s/api-gateway:local
+          imagePullPolicy: IfNotPresent
           resources:
             requests:
               memory: 1Gi
@@ -83,8 +83,8 @@ spec:
     spec:
       containers:
         - name: app
-          image: alexandreroman/spring-petclinic-k8s-customers:latest
-          imagePullPolicy: Always
+          image: spring-petclinic-k8s/customers:local
+          imagePullPolicy: IfNotPresent
           resources:
             requests:
               memory: 1Gi
@@ -148,8 +148,8 @@ spec:
     spec:
       containers:
         - name: app
-          image: alexandreroman/spring-petclinic-k8s-vets:latest
-          imagePullPolicy: Always
+          image: spring-petclinic-k8s/vets:local
+          imagePullPolicy: IfNotPresent
           resources:
             requests:
               memory: 1Gi
@@ -213,8 +213,8 @@ spec:
     spec:
       containers:
         - name: app
-          image: alexandreroman/spring-petclinic-k8s-visits:latest
-          imagePullPolicy: Always
+          image: spring-petclinic-k8s/visits:local
+          imagePullPolicy: IfNotPresent
           resources:
             requests:
               memory: 1Gi
