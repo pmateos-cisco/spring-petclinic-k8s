@@ -21,6 +21,7 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/path: "/actuator/prometheus"
         prometheus.io/port:  "8080"
+        instrumentation.opentelemetry.io/inject-java: "default/splunk-otel-collector"
     spec:
       containers:
         - name: app
@@ -45,6 +46,20 @@ spec:
           ports:
             - name: http
               containerPort: 8080
+          # The Splunk OTel Java auto-instrumentation agent (injected via the
+          # instrumentation.opentelemetry.io/inject-java annotation above)
+          # adds significant startup overhead (bytecode instrumentation +
+          # AlwaysOn Profiler activation), which pushed total startup past
+          # the old fixed initialDelaySeconds on liveness alone - causing
+          # Kubernetes to kill the pod mid-startup in a loop. A startupProbe
+          # defers liveness/readiness checks until the app is actually up.
+          startupProbe:
+            httpGet:
+              port: http
+              path: /actuator/health/readiness
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 60
           livenessProbe:
             httpGet:
               port: http
@@ -90,6 +105,7 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/path: "/actuator/prometheus"
         prometheus.io/port:  "8080"
+        instrumentation.opentelemetry.io/inject-java: "default/splunk-otel-collector"
     spec:
       containers:
         - name: app
@@ -122,6 +138,20 @@ spec:
           ports:
             - name: http
               containerPort: 8080
+          # The Splunk OTel Java auto-instrumentation agent (injected via the
+          # instrumentation.opentelemetry.io/inject-java annotation above)
+          # adds significant startup overhead (bytecode instrumentation +
+          # AlwaysOn Profiler activation), which pushed total startup past
+          # the old fixed initialDelaySeconds on liveness alone - causing
+          # Kubernetes to kill the pod mid-startup in a loop. A startupProbe
+          # defers liveness/readiness checks until the app is actually up.
+          startupProbe:
+            httpGet:
+              port: http
+              path: /actuator/health/readiness
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 60
           livenessProbe:
             httpGet:
               port: http
@@ -170,6 +200,7 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/path: "/actuator/prometheus"
         prometheus.io/port:  "8080"
+        instrumentation.opentelemetry.io/inject-java: "default/splunk-otel-collector"
     spec:
       containers:
         - name: app
@@ -219,6 +250,20 @@ spec:
           ports:
             - name: http
               containerPort: 8080
+          # The Splunk OTel Java auto-instrumentation agent (injected via the
+          # instrumentation.opentelemetry.io/inject-java annotation above)
+          # adds significant startup overhead (bytecode instrumentation +
+          # AlwaysOn Profiler activation), which pushed total startup past
+          # the old fixed initialDelaySeconds on liveness alone - causing
+          # Kubernetes to kill the pod mid-startup in a loop. A startupProbe
+          # defers liveness/readiness checks until the app is actually up.
+          startupProbe:
+            httpGet:
+              port: http
+              path: /actuator/health/readiness
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 60
           livenessProbe:
             httpGet:
               port: http
@@ -254,6 +299,7 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/path: "/actuator/prometheus"
         prometheus.io/port:  "8080"
+        instrumentation.opentelemetry.io/inject-java: "default/splunk-otel-collector"
     spec:
       containers:
         - name: app
@@ -284,6 +330,20 @@ spec:
           ports:
             - name: http
               containerPort: 8080
+          # The Splunk OTel Java auto-instrumentation agent (injected via the
+          # instrumentation.opentelemetry.io/inject-java annotation above)
+          # adds significant startup overhead (bytecode instrumentation +
+          # AlwaysOn Profiler activation), which pushed total startup past
+          # the old fixed initialDelaySeconds on liveness alone - causing
+          # Kubernetes to kill the pod mid-startup in a loop. A startupProbe
+          # defers liveness/readiness checks until the app is actually up.
+          startupProbe:
+            httpGet:
+              port: http
+              path: /actuator/health/readiness
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 60
           livenessProbe:
             httpGet:
               port: http
@@ -319,6 +379,7 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/path: "/actuator/prometheus"
         prometheus.io/port:  "8080"
+        instrumentation.opentelemetry.io/inject-java: "default/splunk-otel-collector"
     spec:
       containers:
         - name: app
@@ -349,6 +410,20 @@ spec:
           ports:
             - name: http
               containerPort: 8080
+          # The Splunk OTel Java auto-instrumentation agent (injected via the
+          # instrumentation.opentelemetry.io/inject-java annotation above)
+          # adds significant startup overhead (bytecode instrumentation +
+          # AlwaysOn Profiler activation), which pushed total startup past
+          # the old fixed initialDelaySeconds on liveness alone - causing
+          # Kubernetes to kill the pod mid-startup in a loop. A startupProbe
+          # defers liveness/readiness checks until the app is actually up.
+          startupProbe:
+            httpGet:
+              port: http
+              path: /actuator/health/readiness
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 60
           livenessProbe:
             httpGet:
               port: http
