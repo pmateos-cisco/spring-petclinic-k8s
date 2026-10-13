@@ -18,6 +18,7 @@ package org.springframework.samples.petclinic.customers.metrics;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
@@ -33,6 +34,7 @@ import java.util.List;
  */
 @Configuration
 @RequiredArgsConstructor
+@Slf4j
 public class PetsMetrics {
     private static final String ANIMALS_UNIT = "animals";
     private final MeterRegistry reg;
@@ -40,7 +42,16 @@ public class PetsMetrics {
 
     @EventListener
     void registerMetrics(ApplicationReadyEvent e) {
-        registerPetsMetrics();
+        // Don't let a DB outage at startup (e.g. a misconfigured
+        // datasource) crash an otherwise successfully-started application:
+        // a failure here previously propagated out of ApplicationReadyEvent
+        // handling and terminated the JVM even though the app context had
+        // already come up fine.
+        try {
+            registerPetsMetrics();
+        } catch (Exception ex) {
+            log.warn("Could not register pet metrics (database may be unavailable): {}", ex.getMessage());
+        }
     }
 
     private void registerPetsMetrics() {

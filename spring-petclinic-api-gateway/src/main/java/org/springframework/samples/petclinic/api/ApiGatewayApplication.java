@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.server.RequestPredicates;
@@ -41,6 +42,7 @@ import java.time.Duration;
  * @author Maciej Szarlinski
  */
 @SpringBootApplication
+@EnableScheduling
 public class ApiGatewayApplication {
 
     public static void main(String[] args) {

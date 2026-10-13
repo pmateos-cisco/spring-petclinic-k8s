@@ -16,14 +16,18 @@
 package org.springframework.samples.petclinic.vets.web;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
+import java.util.Optional;
 
+import org.springframework.samples.petclinic.vets.model.Specialty;
+import org.springframework.samples.petclinic.vets.model.SpecialtyRepository;
 import org.springframework.samples.petclinic.vets.model.Vet;
 import org.springframework.samples.petclinic.vets.model.VetRepository;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 /**
  * @author Juergen Hoeller
@@ -39,8 +43,39 @@ class VetResource {
 
     private final VetRepository vetRepository;
 
+    private final SpecialtyRepository specialtyRepository;
+
     @GetMapping
     public List<Vet> showResourcesVetList() {
         return vetRepository.findAll();
+    }
+
+    /**
+     * Create a new Vet. Specialty names that don't already exist are created
+     * on the fly.
+     */
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public Vet createVet(@Valid @RequestBody VetRequest request) {
+        final Vet vet = new Vet();
+        vet.setFirstName(request.getFirstName());
+        vet.setLastName(request.getLastName());
+
+        if (request.getSpecialties() != null) {
+            for (String name : request.getSpecialties()) {
+                final Optional<Specialty> existing = specialtyRepository.findByName(name);
+                final Specialty specialty;
+                if (existing.isPresent()) {
+                    specialty = existing.get();
+                } else {
+                    final Specialty newSpecialty = new Specialty();
+                    newSpecialty.setName(name);
+                    specialty = specialtyRepository.save(newSpecialty);
+                }
+                vet.addSpecialty(specialty);
+            }
+        }
+
+        return vetRepository.save(vet);
     }
 }

@@ -58,24 +58,34 @@ spec:
             initialDelaySeconds: 60
             timeoutSeconds: 4
 ---
+# customers-service is deployed as TWO versions side by side, both matching
+# the same `app: petclinic, tier: customers` labels that the `customers`
+# Service (see 05-service.yml) selects on. Kubernetes load-balances requests
+# to the `customers` Service round-robin across every Ready pod from BOTH
+# Deployments below - giving true side-by-side, load-balanced canary testing
+# of two versions of the same app.
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: customers
+  name: customers-v1
   namespace: spring-petclinic
   labels:
     app: petclinic
+    version: v1
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: petclinic
       tier: customers
+      version: v1
   template:
     metadata:
       labels:
         app: petclinic
         tier: customers
+        version: v1
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/path: "/actuator/prometheus"
@@ -102,6 +112,105 @@ spec:
                 name: app-wavefront
                 optional: true
           env:
+            - name: APP_VERSION
+              value: "v1"
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: mysql-password
+                  name: pdb-mysql
+          ports:
+            - name: http
+              containerPort: 8080
+          livenessProbe:
+            httpGet:
+              port: http
+              path: /actuator/health/liveness
+            initialDelaySeconds: 60
+            timeoutSeconds: 4
+          readinessProbe:
+            httpGet:
+              port: http
+              path: /actuator/health/readiness
+            initialDelaySeconds: 60
+            timeoutSeconds: 4
+---
+# customers-v2: deliberately broken DATABASE CONNECTION CONFIG
+# (SPRING_DATASOURCE_URL points at a host that doesn't exist). The app still
+# starts and passes liveness/readiness probes - Spring Boot's k8s probe
+# groups (liveness/readiness) don't depend on DB health by default, and the
+# Hikari tuning in application.yml (mysql profile) disables the
+# fail-on-startup behavior - so this pod stays in the `customers` Service's
+# load-balancing rotation. Any request that actually touches the database
+# (e.g. creating an owner/pet) will fail, while reads/writes routed to
+# customers-v1 keep succeeding. This is what lets you see succeeding and
+# failing transactions side by side through the same load-balanced endpoint.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customers-v2
+  namespace: spring-petclinic
+  labels:
+    app: petclinic
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: petclinic
+      tier: customers
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: petclinic
+        tier: customers
+        version: v2
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port:  "8080"
+    spec:
+      containers:
+        - name: app
+          image: spring-petclinic-k8s/customers:local
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: 1Gi
+            limits:
+              memory: 1Gi
+          envFrom:
+            - configMapRef:
+                name: app
+            - secretRef:
+                name: database
+            - configMapRef:
+                name: app-wavefront
+                optional: true            
+            - secretRef:
+                name: app-wavefront
+                optional: true
+          env:
+            - name: APP_VERSION
+              value: "v2"
+            # Overrides SPRING_DATASOURCE_URL coming from the `database`
+            # Secret above with an unreachable host, simulating a broken
+            # database connection config for this version only.
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://pdb-mysql-unreachable:3306/petclinic"
+            # Spring Boot's schema.sql/data.sql initializer needs a real
+            # connection at startup regardless of Hikari pool settings -
+            # disable it here so the app can actually start against a
+            # broken datasource (the real schema/data already exist from
+            # customers-v1 using the same database when it's reachable).
+            - name: SPRING_DATASOURCE_INITIALIZATION_MODE
+              value: "never"
+            # Hibernate also opens a connection at startup purely to
+            # auto-detect the SQL dialect unless it's told explicitly -
+            # avoid that too so JPA can initialize without a working DB.
+            - name: SPRING_JPA_DATABASE_PLATFORM
+              value: "org.hibernate.dialect.MySQL8Dialect"
             - name: SPRING_DATASOURCE_PASSWORD
               valueFrom:
                 secretKeyRef:

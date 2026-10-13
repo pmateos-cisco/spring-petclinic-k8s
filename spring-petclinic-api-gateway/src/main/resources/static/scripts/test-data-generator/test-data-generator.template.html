@@ -1,0 +1,27 @@
+<div class="navbar-form navbar-left" style="padding-top: 8px; padding-bottom: 8px;">
+    <button type="button"
+            class="btn btn-sm"
+            ng-class="$ctrl.status.enabled ? 'btn-danger' : 'btn-success'"
+            ng-disabled="$ctrl.busy"
+            ng-click="$ctrl.toggle()"
+            title="Generates a random owner, pet and vet every {{$ctrl.status.intervalSeconds}} seconds">
+        <span ng-if="$ctrl.status.enabled">&#9632; Stop Test Data Generator</span>
+        <span ng-if="!$ctrl.status.enabled">&#9654; Start Test Data Generator</span>
+    </button>
+    <span class="label label-default" style="margin-left: 6px;" title="Total generation cycles run">
+        runs: {{$ctrl.status.totalRuns}}
+    </span>
+    <span ng-repeat="v in $ctrl.versionKeys()"
+          class="label"
+          style="margin-left: 4px;"
+          ng-class="$ctrl.status.versions[v].failure > 0 ? 'label-danger' : 'label-success'"
+          title="customers-service {{v}}: {{$ctrl.status.versions[v].success}} succeeded / {{$ctrl.status.versions[v].failure}} failed">
+        {{v}}: {{$ctrl.status.versions[v].success}}&#10003; / {{$ctrl.status.versions[v].failure}}&#10007;
+    </span>
+    <span ng-if="$ctrl.status.lastError"
+          class="text-danger"
+          style="margin-left: 6px;"
+          title="{{$ctrl.status.lastError}}">
+        <span class="glyphicon glyphicon-warning-sign"></span>
+    </span>
+</div>

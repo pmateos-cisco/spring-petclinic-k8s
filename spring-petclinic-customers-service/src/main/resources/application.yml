@@ -1,6 +1,12 @@
 server:
   port: 8082
 
+app:
+  # Overridden per-deployment via the APP_VERSION env var; lets two
+  # deployments of this service self-report different version numbers
+  # (see VersionHeaderFilter / X-App-Version response header).
+  version: ${APP_VERSION:unspecified}
+
 wavefront:
   application:
     name: petclinic
@@ -35,3 +41,14 @@ spring:
   datasource:
     schema: classpath*:db/mysql/schema.sql
     data: classpath*:db/mysql/data.sql
+    hikari:
+      # Don't block application startup/readiness on an initial DB
+      # connection, and fail individual requests fast rather than hanging.
+      # This lets a deployment with a deliberately broken
+      # SPRING_DATASOURCE_URL (e.g. SIMULATE_DB_FAILURE scenarios) still
+      # start, pass health probes, and stay in a Service's load-balancing
+      # rotation - while actually exercising data-creation endpoints still
+      # fails as expected, which is exactly what's needed to demo two
+      # versions running side by side with differing outcomes.
+      initialization-fail-timeout: -1
+      connection-timeout: 3000
